@@ -14,6 +14,7 @@ provider:
   environment:
     CLIENT_ID: '328710327846.327878354035'
     CLIENT_SECRET: 92235482e0ed1dcdbab927a02185076e
+    VERIFICATION_TOKEN: OrdWviHqQw3r5un5PfmLMfvr
     INSTALL_ERROR_URL: http://serverlessslackbot.softwareness.nl/#error
     INSTALL_SUCCESS_URL: http://serverlessslackbot.softwareness.nl/#success
     NAMESPACE: ${self:custom.namespace}
@@ -27,6 +28,12 @@ provider:
         - arn:aws:dynamodb:*:*:table/${self:provider.environment.TEAMS_TABLE}
 
 functions:
+  events:
+    handler: events.handler
+    events:
+      - http:
+          path: events
+          method: post
   install:
     handler: install.handler
     events:
