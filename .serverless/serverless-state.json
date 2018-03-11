@@ -29,6 +29,15 @@
           "Resource": [
             "arn:aws:dynamodb:*:*:table/forex-dev-teams"
           ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "lambda:invokeFunction"
+          ],
+          "Resource": [
+            "arn:aws:lambda:*:*:function:forex-dev-actions"
+          ]
         }
       ],
       "versionFunctions": true,
@@ -39,6 +48,12 @@
         "Resources": {
           "ServerlessDeploymentBucket": {
             "Type": "AWS::S3::Bucket"
+          },
+          "ActionsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/forex-dev-actions"
+            }
           },
           "EventsLogGroup": {
             "Type": "AWS::Logs::LogGroup",
@@ -93,6 +108,9 @@
                         ],
                         "Resource": [
                           {
+                            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-dev-actions:*"
+                          },
+                          {
                             "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-dev-events:*"
                           },
                           {
@@ -107,6 +125,9 @@
                         ],
                         "Resource": [
                           {
+                            "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-dev-actions:*:*"
+                          },
+                          {
                             "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-dev-events:*:*"
                           },
                           {
@@ -116,6 +137,9 @@
                       },
                       {
                         "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
                       }
                     ]
                   }
@@ -135,6 +159,53 @@
               }
             }
           },
+          "ActionsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/forex/dev/1520769851430-2018-03-11T12:04:11.430Z/forex.zip"
+              },
+              "FunctionName": "forex-dev-actions",
+              "Handler": "actions.handler",
+              "MemorySize": 1024,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "nodejs4.3",
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "CLIENT_ID": "328710327846.327878354035",
+                  "CLIENT_SECRET": "92235482e0ed1dcdbab927a02185076e",
+                  "VERIFICATION_TOKEN": "OrdWviHqQw3r5un5PfmLMfvr",
+                  "INSTALL_ERROR_URL": "http://serverlessslackbot.softwareness.nl/#error",
+                  "INSTALL_SUCCESS_URL": "http://serverlessslackbot.softwareness.nl/#success",
+                  "NAMESPACE": "forex-dev",
+                  "TEAMS_TABLE": "forex-dev-teams"
+                }
+              }
+            },
+            "DependsOn": [
+              "ActionsLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "ActionsLambdaVersionVniFSb75zjvrWsk3L85vbU3eipj4jYPRwxtYf0P6ZY": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ActionsLambdaFunction"
+              },
+              "CodeSha256": "aX7evWEbi2U9r/n9CUOJytUTRihpRj6mjqwICtkKoYw="
+            }
+          },
           "EventsLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -142,7 +213,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/forex/dev/1520762647693-2018-03-11T10:04:07.693Z/forex.zip"
+                "S3Key": "serverless/forex/dev/1520769851430-2018-03-11T12:04:11.430Z/forex.zip"
               },
               "FunctionName": "forex-dev-events",
               "Handler": "events.handler",
@@ -172,14 +243,14 @@
               "IamRoleLambdaExecution"
             ]
           },
-          "EventsLambdaVersionmPXs9RGrapOlBGNMRLX0mzJi7eWrtWzF8VCmU2mP5E": {
+          "EventsLambdaVersion9RLsow3E23lhBIG0S5HFVc17xvr5Omf1Io969PQ6Q": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "EventsLambdaFunction"
               },
-              "CodeSha256": "OP4tFL7Vt33nofQFdbFium+hlu2xv59+1zlbFAW+PeQ="
+              "CodeSha256": "aX7evWEbi2U9r/n9CUOJytUTRihpRj6mjqwICtkKoYw="
             }
           },
           "InstallLambdaFunction": {
@@ -189,7 +260,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/forex/dev/1520762647693-2018-03-11T10:04:07.693Z/forex.zip"
+                "S3Key": "serverless/forex/dev/1520769851430-2018-03-11T12:04:11.430Z/forex.zip"
               },
               "FunctionName": "forex-dev-install",
               "Handler": "install.handler",
@@ -219,14 +290,14 @@
               "IamRoleLambdaExecution"
             ]
           },
-          "InstallLambdaVersionCSMyX2OOavrfh58LkxjgNQCZpUWvSUsq7Y4Vrg4c": {
+          "InstallLambdaVersionBVhD50rqo0iaYadj54qXQpkpSirdVWZquw9x6EfQMo": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "InstallLambdaFunction"
               },
-              "CodeSha256": "OP4tFL7Vt33nofQFdbFium+hlu2xv59+1zlbFAW+PeQ="
+              "CodeSha256": "aX7evWEbi2U9r/n9CUOJytUTRihpRj6mjqwICtkKoYw="
             }
           },
           "ApiGatewayRestApi": {
@@ -348,7 +419,7 @@
               "MethodResponses": []
             }
           },
-          "ApiGatewayDeployment1520762647722": {
+          "ApiGatewayDeployment1520769851471": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -456,16 +527,22 @@
               "Ref": "ServerlessDeploymentBucket"
             }
           },
+          "ActionsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ActionsLambdaVersionVniFSb75zjvrWsk3L85vbU3eipj4jYPRwxtYf0P6ZY"
+            }
+          },
           "EventsLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "EventsLambdaVersionmPXs9RGrapOlBGNMRLX0mzJi7eWrtWzF8VCmU2mP5E"
+              "Ref": "EventsLambdaVersion9RLsow3E23lhBIG0S5HFVc17xvr5Omf1Io969PQ6Q"
             }
           },
           "InstallLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "InstallLambdaVersionCSMyX2OOavrfh58LkxjgNQCZpUWvSUsq7Y4Vrg4c"
+              "Ref": "InstallLambdaVersionBVhD50rqo0iaYadj54qXQpkpSirdVWZquw9x6EfQMo"
             }
           },
           "ServiceEndpoint": {
@@ -508,6 +585,13 @@
       "stage": "dev"
     },
     "functions": {
+      "actions": {
+        "handler": "actions.handler",
+        "events": [],
+        "name": "forex-dev-actions",
+        "package": {},
+        "vpc": {}
+      },
       "events": {
         "handler": "events.handler",
         "events": [
@@ -569,7 +653,7 @@
     "artifact": "/Users/ferryvanmaurik/OneDrive - Softwareness/Study/AWS/serverless-chatbot/.serverless/forex.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/forex/dev/1520762647693-2018-03-11T10:04:07.693Z",
+    "artifactDirectoryName": "serverless/forex/dev/1520769851430-2018-03-11T12:04:11.430Z",
     "artifact": "forex.zip"
   }
 }
